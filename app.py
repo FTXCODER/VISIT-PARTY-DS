@@ -214,7 +214,7 @@ except:
 # TITLE
 # ----------------------------------------------------
 
-st.title("📋 Daily Sales Entry")
+st.title("📋 B2B Sales Daily Entry form")
 st.write("Fill the details below")
 st.divider()
 
