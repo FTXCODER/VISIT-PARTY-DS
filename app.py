@@ -4,100 +4,105 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime
 
 # -----------------------------
-# Google Authentication
+# GOOGLE SHEET
 # -----------------------------
+
+SPREADSHEET_ID = "1gZ6XzgJ1_HRv99bOTzOD6VFnitksQY6C3LS5iWm0ajo"
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = Credentials.from_service_account_file(
+credentials = Credentials.from_service_account_file(
     "service_account.json",
     scopes=SCOPES
 )
 
-client = gspread.authorize(creds)
+client = gspread.authorize(credentials)
 
-spreadsheet = client.open("Sales Report")
+spreadsheet = client.open_by_key(SPREADSHEET_ID)
 
 ds_sheet = spreadsheet.worksheet("DS")
 member_sheet = spreadsheet.worksheet("MEMBER NAME")
 
 # -----------------------------
-# Load Members
+# MEMBER LIST
 # -----------------------------
 
 members = member_sheet.col_values(1)
 
-members.append("Other")
+if members:
+    members = members[1:]  # remove header
 
 # -----------------------------
 # UI
 # -----------------------------
 
 st.set_page_config(
-    page_title="DS Entry",
+    page_title="Sales Entry",
+    page_icon="📋",
     layout="centered"
 )
 
-st.title("DS Entry Form")
+st.title("Sales Entry Form")
+
+st.write("---")
 
 selected_member = st.selectbox(
-    "Member",
-    members
+    "MEMBER",
+    [""] + members
 )
 
-member = selected_member
-
-if selected_member == "Other":
-    member = st.text_input("Enter Member Name")
-
-today = datetime.today()
-
-date = st.date_input(
-    "Date",
-    today
+manual_member = st.text_input(
+    "Or Type Member Name"
 )
 
-party = st.text_input("Visit Party Name")
+visit_date = st.date_input(
+    "DATE",
+    value=datetime.today()
+)
+
+party = st.text_input(
+    "VISIT PARTY NAME"
+)
 
 pcs = st.number_input(
-    "Order In PCS",
+    "ORDER IN PCS",
     min_value=0,
     step=1
 )
 
 value = st.number_input(
-    "Approx Value",
+    "APPROX VALUE",
     min_value=0.0,
     step=100.0
 )
 
-# -----------------------------
-# Save
-# -----------------------------
+st.write("")
 
 if st.button("SAVE"):
 
+    member = manual_member.strip() if manual_member.strip() else selected_member
+
     if member == "":
-        st.error("Enter Member Name")
+        st.error("Please select or type MEMBER.")
+        st.stop()
 
-    elif party == "":
-        st.error("Enter Party Name")
+    if party.strip() == "":
+        st.error("Please enter VISIT PARTY NAME.")
+        st.stop()
 
-    else:
+    formatted_date = visit_date.strftime("%d-%b-%Y")
 
-        formatted_date = date.strftime("%d-%b-%Y")
+    row = [
+        member,
+        formatted_date,
+        party,
+        pcs,
+        value
+    ]
 
-        row = [
-            member,
-            formatted_date,
-            party,
-            pcs,
-            value
-        ]
+    ds_sheet.append_row(row)
 
-        ds_sheet.append_row(row)
-
-        st.success("Data Saved Successfully")
+    st.success("Data Saved Successfully!")
