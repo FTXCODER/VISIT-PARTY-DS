@@ -256,6 +256,13 @@ with st.form("sales_form", clear_on_submit=True):
         format="%g"
     )
 
+    # --------------- #
+    remarks = st.text_area(
+        "Remarks",
+        placeholder="Write your remarks here..."
+    )
+    # --------------- #
+
     submitted = st.form_submit_button(
         "💾 SAVE",
         use_container_width=True
@@ -282,12 +289,23 @@ if submitted:
 
     formatted_date = visit_date.strftime("%d-%b-%Y")
 
+    # row = [
+    #     member,
+    #     formatted_date,
+    #     party.strip(),
+    #     pcs,
+    #     value
+    # ]
+
     row = [
-        member,
-        formatted_date,
-        party.strip(),
-        pcs,
-        value
+        member,          # Column A
+        formatted_date,  # Column B
+        party.strip(),   # Column C
+        pcs,             # Column D
+        value,           # Column E
+        "",              # Column F (TOTAL ORDER PER MONTH)
+        "",              # Column G (TOTAL ORDER TILL DATE)
+        remarks.strip()  # Column H (REMARKS)
     ]
 
     ds_sheet.append_row(
