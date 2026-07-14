@@ -163,6 +163,8 @@ import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
+# Add On WhatsApp
+import requests
 
 # ----------------------------------------------------
 # PAGE SETTINGS
@@ -198,17 +200,81 @@ ds_sheet = spreadsheet.worksheet("DS")
 member_sheet = spreadsheet.worksheet("MEMBER NAME")
 
 # ----------------------------------------------------
+# WASENDER API SETTINGS
+# ----------------------------------------------------
+
+WASENDER_API_KEY = st.secrets["wasender"]["api_key"]
+
+WASENDER_URL = "https://www.wasenderapi.com/api/send-message"
+
+
+# ----------------------------------------------------
+# SEND WHATSAPP MESSAGE
+# ----------------------------------------------------
+
+def send_whatsapp(phone_number, submission_date):
+
+    message = (
+        f"SUBMISSION DONE\n"
+        f"{submission_date}"
+    )
+
+    headers = {
+        "Authorization": f"Bearer {WASENDER_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "to": phone_number,
+        "text": message
+    }
+
+    try:
+        response = requests.post(
+            WASENDER_URL,
+            headers=headers,
+            json=payload,
+            timeout=20
+        )
+
+        return response.ok
+
+    except requests.RequestException:
+        return False
+
+# ----------------------------------------------------
 # LOAD MEMBER LIST
 # ----------------------------------------------------
 
+# try:
+#     members = member_sheet.col_values(1)
+
+#     if len(members) > 0:
+#         members = members[1:]  # Remove header
+
+# except:
+#     members = []
 try:
-    members = member_sheet.col_values(1)
+    member_data = member_sheet.get_all_values()
 
-    if len(members) > 0:
-        members = members[1:]  # Remove header
-
-except:
     members = []
+    member_phone = {}
+
+    for row in member_data[1:]:
+
+        if len(row) >= 1 and row[0].strip():
+
+            member_name = row[0].strip()
+
+            members.append(member_name)
+
+            if len(row) >= 2 and row[1].strip():
+
+                member_phone[member_name] = row[1].strip()
+
+except Exception:
+    members = []
+    member_phone = {}
 
 # ----------------------------------------------------
 # TITLE
@@ -312,6 +378,19 @@ if submitted:
         row,
         value_input_option="USER_ENTERED"
     )
+
+    # ----------------------------------------------------
+    # SEND WHATSAPP MESSAGE
+    # ----------------------------------------------------
+    
+    if member in member_phone:
+    
+        phone_number = member_phone[member]
+    
+        send_whatsapp(
+            phone_number,
+            formatted_date
+        )
 
     st.success("✅ Data Saved Successfully!")
 
