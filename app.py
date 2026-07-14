@@ -215,7 +215,7 @@ WASENDER_URL = "https://www.wasenderapi.com/api/send-message"
 def send_whatsapp(phone_number, submission_date):
 
     message = (
-        f"SUBMISSION DONE\n"
+        f"SUBMISSION DONE : FOR📋 B2B SALES DAILY ENTRY FORM\n"
         f"{submission_date}"
     )
 
